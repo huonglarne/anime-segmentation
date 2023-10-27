@@ -43,9 +43,9 @@ if __name__ == "__main__":
                         help='net name')
     parser.add_argument('--ckpt', type=str, default='saved_models/isnetis.ckpt',
                         help='model checkpoint path')
-    parser.add_argument('--data', type=str, default='../../dataset/anime-seg/test2',
+    parser.add_argument('--data', type=str, default='data',
                         help='input data dir')
-    parser.add_argument('--out', type=str, default='out',
+    parser.add_argument('--out', type=str, default='output',
                         help='output dir')
     parser.add_argument('--img-size', type=int, default=1024,
                         help='hyperparameter, input image size of the net')
@@ -53,7 +53,7 @@ if __name__ == "__main__":
                         help='cpu or cuda:0')
     parser.add_argument('--fp32', action='store_true', default=False,
                         help='disable mix precision')
-    parser.add_argument('--only-matted', action='store_true', default=False,
+    parser.add_argument('--only-matted', action='store_true', default=True,
                         help='only output matted image')
 
     opt = parser.parse_args()
@@ -72,9 +72,9 @@ if __name__ == "__main__":
         img = cv2.cvtColor(cv2.imread(path, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
         mask = get_mask(model, img, use_amp=not opt.fp32, s=opt.img_size)
         if opt.only_matted:
-            img = np.concatenate((mask * img + 1 - mask, mask * 255), axis=2).astype(np.uint8)
+            img = np.concatenate((mask * img + (1 - mask), mask * 255), axis=2).astype(np.uint8)
             img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
-            cv2.imwrite(f'{opt.out}/{i:06d}.png', img)
+            cv2.imwrite(f'{opt.out}/{i:06d}.jpg', img)
         else:
             img = np.concatenate((img, mask * img, mask.repeat(3, 2) * 255), axis=1).astype(np.uint8)
             img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
